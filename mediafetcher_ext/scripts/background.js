@@ -21,7 +21,7 @@ chrome.webRequest.onCompleted.addListener(
 
 chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
-        if (request.message === 'getImageUrls') {
+        if (request.message === 'getResources') {
             const pageUrl = request.pageUrl;
             const type = request.type;
             sendResponse(pageResources[type][pageUrl]);
