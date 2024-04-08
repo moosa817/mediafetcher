@@ -4,15 +4,29 @@ let pageResources = {
     video: {}
 };
 
-chrome.webRequest.onCompleted.addListener(
+
+chrome.webRequest.onResponseStarted.addListener(
     function (details) {
-        if (details.type === 'image' || details.type === 'audio' || details.type === 'video') {
+        if (details.type === 'image' || details.type === 'media') {
+
+
             const pageUrl = details.tabId;
-            if (!pageResources[details.type][pageUrl]) {
-                pageResources[details.type][pageUrl] = [];
+            let mytype;
+            if (details.type === 'media') {
+                if (details.url.includes('.mp3')) {
+                    mytype = 'audio';
+                }
+                else { mytype = 'video'; }
+            } else {
+                mytype = 'image';
             }
-            if (!pageResources[details.type][pageUrl].includes(details.url)) {
-                pageResources[details.type][pageUrl].push(details.url);
+
+
+            if (!pageResources[mytype][pageUrl]) {
+                pageResources[mytype][pageUrl] = [];
+            }
+            if (!pageResources[mytype][pageUrl].includes(details.url)) {
+                pageResources[mytype][pageUrl].push(details.url);
             }
         }
     },
@@ -26,8 +40,30 @@ chrome.runtime.onMessage.addListener(
             const type = request.type;
             sendResponse(pageResources[type][pageUrl]);
         }
+
+
+        if (request.message === 'DeleteAllResources') {
+            const pageUrl = request.pageUrl;
+            const type = request.type;
+            pageResources[type][pageUrl] = [];
+            sendResponse(true);
+        }
+
+        if (request.message === 'DeleteSingleResource') {
+            const pageUrl = request.pageUrl;
+            const type = request.type;
+            const url = request.url;
+            const index = pageResources[type][pageUrl].indexOf(url);
+            if (index > -1) {
+                pageResources[type][pageUrl].splice(index, 1);
+            }
+            sendResponse(true);
+        }
     }
 );
+
+
+
 
 chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
     const pageUrl = tabId;

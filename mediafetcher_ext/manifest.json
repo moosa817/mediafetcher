@@ -6,7 +6,8 @@
     "permissions": [
         "activeTab",
         "tabs",
-        "webRequest"
+        "webRequest",
+        "downloads"
     ],
     "host_permissions": [
         "<all_urls>"
