@@ -133,19 +133,63 @@ $('body').on('click', '.download-single', function () {
     });
 });
 
+function getFilenameFromUrl(url) {
+    // Extract the filename from the URL
+    const parts = url.split('/');
+    let filename = parts[parts.length - 1];
+    // Remove anything that is not a letter
+    filename = filename.replace(/[^a-zA-Z]/g, '');
+    // Get the file extension using regex
+    const extension = filename.match(/\.[0-9a-z]+$/i);
+    // If the extension is not found, append a default extension
+
+    // keep last 20 letters of filename
+    filename = filename.slice(-20);
+
+    const defaultExtension = 'jpg';
+    return extension ? filename : filename + '.' + defaultExtension;
+}
+
+function DownloadZip(urls) {
+    const zip = new JSZip();
+
+    // Fetch each URL and add it to the zip file
+    const promises = urls.map(url => {
+        return fetch(url)
+            .then(response => response.blob())
+            .then(blob => {
+                const filename = getFilenameFromUrl(url);
+                zip.file(filename, blob);
+            });
+    });
+
+    // Wait for all fetch requests to complete
+    return Promise.all(promises)
+        .then(() => {
+            // Generate the zip file
+            return zip.generateAsync({ type: 'blob' });
+        })
+        .then(blob => {
+            // Download the zip file
+            const filename = 'download.zip';
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+        });
+}
+
+
+
+
+
+
 $('.download-all').click(function () {
+    $(this).text('Downloading...'); // Fix: Remove quotes around 'this'
+
     let urls = $(`#${current_page}-grid`).find('div').map(function () {
         return $(this).data('url');
-    });
-    urls.each(function (index, url) {
-        chrome.downloads.download({
-            url: url
-        }, function (downloadId) {
-            if (downloadId) {
-                // Handle download success
-            } else {
-                // Handle download failure
-            }
-        });
-    });
+    }).get();
+
+    DownloadZip(urls)
 });

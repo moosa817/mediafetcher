@@ -5,6 +5,9 @@ let pageResources = {
 };
 
 
+
+
+
 chrome.webRequest.onResponseStarted.addListener(
     function (details) {
         if (details.type === 'image' || details.type === 'media') {
@@ -13,21 +16,32 @@ chrome.webRequest.onResponseStarted.addListener(
             const pageUrl = details.tabId;
             let mytype;
             if (details.type === 'media') {
-                if (details.url.includes('.mp3')) {
+
+
+                if (details.url.includes('.mp3') || details.url.includes('.ogv')) {
                     mytype = 'audio';
                 }
-                else { mytype = 'video'; }
-            } else {
+
+                if (details.url.includes('.mp4') || details.url.includes('.mkv') || details.url.includes('.webm')) {
+                    mytype = 'video';
+                    console.log("and here")
+
+                }
+            }
+            else {
                 mytype = 'image';
             }
 
+            if (mytype) {
 
-            if (!pageResources[mytype][pageUrl]) {
-                pageResources[mytype][pageUrl] = [];
+                if (!pageResources[mytype][pageUrl]) {
+                    pageResources[mytype][pageUrl] = [];
+                }
+                if (!pageResources[mytype][pageUrl].includes(details.url)) {
+                    pageResources[mytype][pageUrl].push(details.url);
+                }
             }
-            if (!pageResources[mytype][pageUrl].includes(details.url)) {
-                pageResources[mytype][pageUrl].push(details.url);
-            }
+
         }
     },
     { urls: ["<all_urls>"] }
@@ -59,7 +73,20 @@ chrome.runtime.onMessage.addListener(
             }
             sendResponse(true);
         }
+
+
+        if (request.message === 'DownloadAllResources') {
+            const urls = request.urls;
+            const zipUrl = createZip(urls);
+            sendResponse({ zipUrl: zipUrl });
+        }
+
+
     }
+
+
+
+
 );
 
 
