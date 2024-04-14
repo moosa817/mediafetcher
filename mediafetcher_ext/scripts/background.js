@@ -3,7 +3,7 @@ let pageResources = {
     audio: {},
     video: {}
 };
-
+let filenames = [];
 
 
 
@@ -38,7 +38,15 @@ chrome.webRequest.onResponseStarted.addListener(
                     pageResources[mytype][pageUrl] = [];
                 }
                 if (!pageResources[mytype][pageUrl].includes(details.url)) {
-                    pageResources[mytype][pageUrl].push(details.url);
+                    // get filename before .jpg
+                    let filename, ext;
+                    filename = details.url.split('.jpg')[0];
+                    if (!filenames.includes(filename)) {
+                        pageResources[mytype][pageUrl].push(details.url);
+                        filenames.push(filename);
+
+                    }
+
                 }
             }
 
